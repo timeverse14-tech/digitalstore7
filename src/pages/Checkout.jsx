@@ -136,11 +136,11 @@ const Checkout = () => {
         })),
         total: cartTotal,
         transactionId: transactionId || 'Pending Verification',
-        userId: user?.uid || 'guest',
+        userId: user?.id || 'guest',
         customer: {
-          name: user?.displayName || 'Guest',
+          name: user?.user_metadata?.displayName || user?.displayName || 'Guest',
           email: user?.email || 'guest@pixelvault.com',
-          avatar: (user?.displayName || 'G')[0].toUpperCase(),
+          avatar: ((user?.user_metadata?.displayName || user?.displayName || 'G')[0]).toUpperCase(),
         },
         paymentScreenshot: screenshotUrl, // Now a valid URL instead of a giant base64 string
         screenshotName: screenshotFile.name,

@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { FiSearch, FiEye, FiCheck, FiX, FiDownload, FiImage, FiCreditCard, FiUser, FiPackage } from 'react-icons/fi';
+import { useOrders } from '../../hooks/useOrders';
 
 const mockOrders = [
   {
@@ -145,11 +146,31 @@ const itemVariants = {
 };
 
 const AdminOrders = () => {
-  const [orders, setOrders] = useState(mockOrders);
+  const { orders: rawOrders, loading, getAllOrders, updateOrderStatus: apiUpdateStatus } = useOrders();
   const [activeTab, setActiveTab] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+
+  useEffect(() => {
+    getAllOrders();
+  }, [getAllOrders]);
+
+  const orders = useMemo(() => {
+    return rawOrders.map(o => ({
+      id: o.order_number || o.id,
+      dbId: o.id,
+      customer: o.customer || { name: 'Unknown', email: 'unknown@email.com', avatar: 'U' },
+      products: o.items || [],
+      amount: o.total || 0,
+      status: o.status || 'Pending',
+      paymentMethod: o.paymentMethod || o.payment_method || 'UPI',
+      transactionId: o.transactionId || o.transaction_id || 'N/A',
+      paymentScreenshot: o.paymentScreenshot || o.payment_screenshot || null,
+      date: o.created_at ? new Date(o.created_at).toLocaleDateString() : 'Recent',
+      address: 'India',
+    }));
+  }, [rawOrders]);
 
   const filteredOrders = useMemo(() => {
     let filtered = orders;
@@ -172,11 +193,18 @@ const AdminOrders = () => {
     setShowDetailModal(true);
   };
 
-  const updateOrderStatus = (orderId, newStatus) => {
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-    toast.success(`Order ${orderId} ${newStatus.toLowerCase()}`);
-    if (selectedOrder?.id === orderId) {
-      setSelectedOrder(prev => ({ ...prev, status: newStatus }));
+  const updateOrderStatus = async (orderId, newStatus) => {
+    const orderToUpdate = orders.find(o => o.id === orderId);
+    if (!orderToUpdate) return;
+    try {
+      await apiUpdateStatus(orderToUpdate.dbId, newStatus);
+      toast.success(`Order ${orderId} ${newStatus.toLowerCase()}`);
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder(prev => ({ ...prev, status: newStatus }));
+      }
+      getAllOrders();
+    } catch (err) {
+      toast.error('Failed to update status');
     }
   };
 
@@ -439,10 +467,21 @@ const AdminOrders = () => {
                   {/* Payment Screenshot */}
                   <div style={styles.screenshotSection}>
                     <span style={styles.detailLabel}>Payment Screenshot</span>
-                    <div style={styles.screenshotPlaceholder}>
-                      <FiImage size={32} style={{ color: 'var(--text-muted)' }} />
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>No screenshot uploaded</span>
-                    </div>
+                    {selectedOrder.paymentScreenshot ? (
+                      <a href={selectedOrder.paymentScreenshot} target="_blank" rel="noreferrer" style={{ display: 'block', marginTop: '8px' }}>
+                        <img 
+                          src={selectedOrder.paymentScreenshot} 
+                          alt="Payment Screenshot" 
+                          style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} 
+                        />
+                      </a>
+                    ) : (
+                      <div style={{ padding: '2rem', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', marginTop: '8px' }}>
+                        <FiImage size={32} style={{ color: 'var(--text-muted)' }} />
+                        <br/>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>No screenshot uploaded</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

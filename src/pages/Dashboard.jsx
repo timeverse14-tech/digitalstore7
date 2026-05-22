@@ -52,11 +52,11 @@ const Dashboard = () => {
               
               <div style={{ padding: 'var(--space-6)', borderBottom: '1px solid var(--color-border)', textAlign: 'center' }}>
                 <img 
-                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=13131a&color=a855f7&size=80`} 
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.user_metadata?.displayName || user.displayName || 'User')}&background=13131a&color=a855f7&size=80`} 
                   alt="Profile" 
                   style={{ borderRadius: '50%', border: '2px solid var(--color-purple)', marginBottom: 'var(--space-4)' }}
                 />
-                <h3 className="heading-6 m-0">{user.displayName || 'PixelVault User'}</h3>
+                <h3 className="heading-6 m-0">{user?.user_metadata?.displayName || user.displayName || 'PixelVault User'}</h3>
                 <p className="text-xs text-muted mt-1 m-0">{user.email}</p>
               </div>
 
