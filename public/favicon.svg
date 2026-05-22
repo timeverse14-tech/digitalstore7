@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="vaultGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <linearGradient id="innerGrad" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+  </defs>
+  <!-- Outer hexagon -->
+  <path
+    d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z"
+    stroke="url(#vaultGrad)"
+    stroke-width="3"
+    fill="none"
+    stroke-linejoin="round"
+  />
+  <!-- Inner hexagon -->
+  <path
+    d="M32 14 L46 22 L46 38 L32 46 L18 38 L18 22 Z"
+    fill="url(#vaultGrad)"
+    opacity="0.15"
+    stroke="url(#innerGrad)"
+    stroke-width="1.5"
+    stroke-linejoin="round"
+  />
+  <!-- Vault keyhole / shield icon -->
+  <circle cx="32" cy="28" r="5" fill="url(#vaultGrad)" />
+  <rect x="30" y="32" width="4" height="8" rx="1.5" fill="url(#vaultGrad)" />
+  <!-- Corner accent dots -->
+  <circle cx="32" cy="4" r="2" fill="#a855f7" />
+  <circle cx="56" cy="18" r="2" fill="#8b5cf6" />
+  <circle cx="56" cy="46" r="2" fill="#06b6d4" />
+  <circle cx="32" cy="60" r="2" fill="#06b6d4" />
+  <circle cx="8" cy="46" r="2" fill="#22d3ee" />
+  <circle cx="8" cy="18" r="2" fill="#a855f7" />
+</svg>
