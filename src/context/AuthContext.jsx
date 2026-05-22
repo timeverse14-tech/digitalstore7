@@ -98,20 +98,39 @@ export function AuthProvider({ children }) {
 
   // Login
   const login = useCallback(async (email, password) => {
-    // Special case: Admin Demo Login bypass
+    // Special case: Admin Login
     if (email === 'admin@pixelvault.com' && password === 'admin123') {
-      const demoAdmin = {
-        uid: 'admin_001',
-        email: 'admin@pixelvault.com',
-        displayName: 'PixelVault Admin',
-        role: 'admin',
-        user_metadata: { role: 'admin', displayName: 'PixelVault Admin' }
-      };
-      localStorage.setItem('pv_session', JSON.stringify(demoAdmin));
-      setUser(demoAdmin);
+      let { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      // If admin doesn't exist in Supabase yet, create them automatically
+      if (error && error.message.includes('Invalid login credentials')) {
+        const signupRes = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { displayName: 'PixelVault Admin', role: 'admin' } }
+        });
+        
+        if (signupRes.error) {
+          toast.error(signupRes.error.message);
+          throw signupRes.error;
+        }
+        
+        // After signup, try logging in again
+        const retryLogin = await supabase.auth.signInWithPassword({ email, password });
+        data = retryLogin.data;
+        error = retryLogin.error;
+      }
+
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+
+      localStorage.setItem('pv_session', JSON.stringify(data.user));
+      setUser(data.user);
       setIsAdmin(true);
       toast.success('Welcome back, Admin!');
-      return demoAdmin;
+      return data.user;
     }
 
     const { data, error } = await supabase.auth.signInWithPassword({
