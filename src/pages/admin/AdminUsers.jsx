@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { FiSearch, FiEye, FiShield, FiX, FiUser, FiMail, FiCalendar, FiShoppingBag, FiDollarSign, FiToggleLeft, FiToggleRight } from 'react-icons/fi';
+import { useOrders } from '../../hooks/useOrders';
 
 const mockUsers = [
   {
@@ -162,10 +163,65 @@ const itemVariants = {
 };
 
 const AdminUsers = () => {
-  const [users, setUsers] = useState(mockUsers);
+  const { orders: rawOrders, getAllOrders } = useOrders();
+  const [users, setUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+
+  useEffect(() => {
+    getAllOrders();
+  }, [getAllOrders]);
+
+  useEffect(() => {
+    const userMap = new Map();
+    
+    // Add default admin
+    userMap.set('admin@pixelvault.com', {
+      id: 'admin',
+      name: 'Admin User',
+      email: 'admin@pixelvault.com',
+      avatar: 'A',
+      role: 'Admin',
+      ordersCount: 0,
+      totalSpent: 0,
+      joinedDate: '2026-05-01',
+      status: 'Active',
+      lastActive: 'Online now',
+      orders: [],
+    });
+
+    rawOrders.forEach(order => {
+      const email = order.customer?.email || 'guest@pixelvault.com';
+      if (!userMap.has(email)) {
+        userMap.set(email, {
+          id: order.user_id || `guest-${order.id}`,
+          name: order.customer?.name || 'Guest',
+          email: email,
+          avatar: order.customer?.avatar || 'G',
+          role: 'Customer',
+          ordersCount: 0,
+          totalSpent: 0,
+          joinedDate: order.created_at ? new Date(order.created_at).toLocaleDateString() : 'Recent',
+          status: 'Active',
+          lastActive: 'Active recently',
+          orders: [],
+        });
+      }
+      
+      const u = userMap.get(email);
+      u.ordersCount += 1;
+      u.totalSpent += (order.total || 0);
+      u.orders.push({
+        id: order.order_number || order.id,
+        product: order.items?.[0]?.title || 'Product',
+        amount: order.total || 0,
+        date: order.created_at ? new Date(order.created_at).toLocaleDateString() : 'Recent',
+      });
+    });
+
+    setUsers(Array.from(userMap.values()));
+  }, [rawOrders]);
 
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) return users;

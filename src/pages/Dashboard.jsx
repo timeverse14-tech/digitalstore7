@@ -10,15 +10,17 @@ import toast from 'react-hot-toast';
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('purchases');
   const { user, logout } = useAuth();
-  const { orders } = useOrders();
+  const { orders, getUserOrders } = useOrders();
   const navigate = useNavigate();
 
-  // Protect route
+  // Protect route and fetch data
   React.useEffect(() => {
     if (!user) {
       navigate('/login');
+    } else if (user.id || user.uid) {
+      getUserOrders(user.id || user.uid);
     }
-  }, [user, navigate]);
+  }, [user, navigate, getUserOrders]);
 
   const handleLogout = async () => {
     await logout();
